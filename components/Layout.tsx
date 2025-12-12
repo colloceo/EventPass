@@ -1,5 +1,6 @@
 import React from 'react';
-import { LayoutDashboard, CalendarPlus, Ticket, ScanLine, FileText } from 'lucide-react';
+import { LayoutDashboard, CalendarPlus, Ticket, ScanLine } from 'lucide-react';
+import { Onboarding } from './Onboarding';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -13,11 +14,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigat
     { id: 'create-event', label: 'Create Event', icon: CalendarPlus },
     { id: 'generate-ticket', label: 'Issue Ticket', icon: Ticket },
     { id: 'scanner', label: 'Scanner', icon: ScanLine },
-    { id: 'docs', label: 'System Docs', icon: FileText },
   ];
 
   return (
-    <div className="flex min-h-screen bg-gray-50 font-sans text-slate-800">
+    <div className="flex min-h-screen bg-gray-50 font-sans text-slate-800 relative">
+      {/* Onboarding Tour */}
+      <Onboarding />
+
       {/* Sidebar */}
       <aside className="w-64 bg-slate-900 text-white flex-shrink-0 hidden md:flex flex-col">
         <div className="p-6 border-b border-slate-700">
@@ -30,6 +33,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigat
           {navItems.map((item) => (
             <button
               key={item.id}
+              id={`nav-item-${item.id}`} // Unique ID for Onboarding target
               onClick={() => onNavigate(item.id)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                 currentPage === item.id
@@ -43,7 +47,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigat
           ))}
         </nav>
         <div className="p-4 border-t border-slate-700 text-xs text-slate-500 text-center">
-          v1.0.0 Production Build
+          v1.1.0 Production Build
         </div>
       </aside>
 
@@ -52,7 +56,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigat
          <span className="font-bold flex gap-2"><Ticket /> EventPass</span>
          <div className="flex gap-4">
             {navItems.map(item => (
-                <button key={item.id} onClick={() => onNavigate(item.id)} className={currentPage === item.id ? 'text-blue-400' : 'text-gray-400'}>
+                <button 
+                    key={item.id} 
+                    id={`mobile-nav-item-${item.id}`} // Unique ID for Onboarding target (mobile)
+                    onClick={() => onNavigate(item.id)} 
+                    className={currentPage === item.id ? 'text-blue-400' : 'text-gray-400'}
+                >
                     <item.icon size={20} />
                 </button>
             ))}

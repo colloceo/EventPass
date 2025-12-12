@@ -17,6 +17,7 @@ const initializeData = () => {
         date: '2024-11-15',
         location: 'San Francisco, CA',
         price: 299,
+        currency: 'USD',
         description: 'The biggest tech event of the year.',
       },
       {
@@ -25,6 +26,7 @@ const initializeData = () => {
         date: '2024-07-20',
         location: 'Austin, TX',
         price: 150,
+        currency: 'USD',
         description: 'Live music, food, and fun.',
       },
     ];
@@ -115,6 +117,7 @@ export const getStats = async (): Promise<Stats> => {
   
   const revenue = tickets.reduce((acc, ticket) => {
     const event = events.find(e => e.id === ticket.eventId);
+    // Note: This sums up raw numbers regardless of currency for the simple stats view
     return acc + (event ? event.price : 0);
   }, 0);
 

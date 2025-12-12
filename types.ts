@@ -4,6 +4,7 @@ export interface Event {
   date: string;
   location: string;
   price: number;
+  currency: string;
   description: string;
 }
 
