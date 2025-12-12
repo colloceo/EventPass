@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getStats, getEvents } from '../services/mockBackend';
 import { Stats, Event } from '../types';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { DollarSign, Users, Ticket, Activity, Calendar, ArrowUpRight, ArrowRight, Wallet, PieChart } from 'lucide-react';
+import { DollarSign, Users, Ticket, Activity, Calendar, ArrowUpRight, Wallet, PieChart, TrendingUp } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -18,16 +18,15 @@ export const Dashboard: React.FC = () => {
       setRecentEvents(allEvents.slice(0, 5));
 
       if (allEvents.length > 0) {
-        // Simple logic to show the currency of the most recent event or default
         setRevenueCurrency(allEvents[0].currency);
       }
     };
     fetchData();
   }, []);
 
-  if (!stats) return <div className="p-8 text-center text-slate-400">Loading dashboard...</div>;
+  if (!stats) return <div className="p-12 text-center text-slate-400 font-medium">Loading analytics...</div>;
 
-  // Mock data for the chart based on total tickets to make it look dynamic
+  // Mock data for the chart
   const baseValue = stats.totalTickets > 0 ? stats.totalTickets : 10;
   const chartData = [
     { name: 'Mon', sales: Math.floor(baseValue * 0.2) },
@@ -43,30 +42,41 @@ export const Dashboard: React.FC = () => {
     <div className="space-y-8 pb-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-           <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Overview</h2>
-           <p className="text-slate-500 mt-1">Track your event sales and earnings.</p>
+           <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Dashboard</h2>
+           <p className="text-slate-500 mt-1 font-medium">Welcome back, here's what's happening today.</p>
         </div>
-        <div className="flex gap-2">
-            <button className="bg-white hover:bg-gray-50 border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
-                <Calendar size={16} className="text-slate-500" /> 
+        <div className="flex gap-3">
+            <button className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm flex items-center gap-2">
+                <Calendar size={16} className="text-slate-400" /> 
                 <span>Last 30 Days</span>
+            </button>
+             <button className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-slate-900/20 flex items-center gap-2">
+                <TrendingUp size={16} /> 
+                <span>Reports</span>
             </button>
         </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         
-        {/* Net Earnings (Organizer Profit) */}
-        <StatCard 
-          title="Net Earnings" 
-          value={`${revenueCurrency} ${stats.netRevenue.toLocaleString()}`} 
-          icon={Wallet} 
-          trend="15.2%"
-          trendUp={true}
-          description="After fees"
-          highlight
-        />
+        {/* Net Earnings (Premium Card) */}
+        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6 rounded-2xl shadow-xl shadow-slate-900/10 flex flex-col justify-between relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:scale-110 transition-transform duration-500">
+                <Wallet size={80} />
+            </div>
+            <div className="relative z-10">
+                <p className="text-slate-400 text-sm font-medium mb-1">Net Earnings</p>
+                <h3 className="text-3xl font-bold tracking-tight">{revenueCurrency} {stats.netRevenue.toLocaleString()}</h3>
+                <p className="text-xs text-slate-500 mt-1">Profit after platform fees</p>
+            </div>
+            <div className="relative z-10 mt-4 flex items-center gap-2">
+                 <div className="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-2 py-1 rounded-lg flex items-center gap-1">
+                    <ArrowUpRight size={12} /> 15.2%
+                 </div>
+                 <span className="text-xs text-slate-500">vs last month</span>
+            </div>
+        </div>
 
         {/* Gross Sales */}
         <StatCard 
@@ -75,6 +85,7 @@ export const Dashboard: React.FC = () => {
           icon={DollarSign} 
           trend="12.5%"
           trendUp={true}
+          color="blue"
         />
 
         <StatCard 
@@ -83,38 +94,36 @@ export const Dashboard: React.FC = () => {
           icon={Ticket} 
           trend="8.2%"
           trendUp={true}
+          color="indigo"
         />
         
         <StatCard 
-          title="Check-ins" 
+          title="Active Check-ins" 
           value={stats.ticketsUsed.toString()} 
           icon={Users} 
           trend="2.1%"
           trendUp={false}
           isNeutral
+          color="orange"
         />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* Chart Section */}
-        <div className="xl:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60">
+        <div className="xl:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
           <div className="flex items-center justify-between mb-8">
              <div>
-                <h3 className="text-lg font-bold text-slate-900">Revenue Trend</h3>
-                <p className="text-sm text-slate-400">Daily financial performance</p>
-             </div>
-             <div className="flex gap-2 items-center">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Net Earnings</span>
+                <h3 className="text-lg font-bold text-slate-900">Revenue Trajectory</h3>
+                <p className="text-sm text-slate-400 font-medium">Daily financial performance over time</p>
              </div>
           </div>
-          <div className="h-[300px] w-full">
+          <div className="h-[320px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -122,23 +131,23 @@ export const Dashboard: React.FC = () => {
                     dataKey="name" 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{fill: '#94a3b8', fontSize: 12}} 
+                    tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 500}} 
                     dy={10}
                 />
                 <YAxis 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{fill: '#94a3b8', fontSize: 12}} 
+                    tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 500}} 
                 />
                 <Tooltip 
-                    contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'}}
+                    contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.1)', padding: '12px'}}
                     cursor={{stroke: '#cbd5e1', strokeWidth: 1}}
                 />
                 <Area 
                     type="monotone" 
                     dataKey="sales" 
-                    stroke="#10b981" 
-                    strokeWidth={3} 
+                    stroke="#3b82f6" 
+                    strokeWidth={4} 
                     fillOpacity={1} 
                     fill="url(#colorSales)" 
                 />
@@ -147,70 +156,83 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Fees Info / Recent */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60 flex flex-col">
-          <div className="mb-6 pb-6 border-b border-slate-100">
-             <h3 className="text-lg font-bold text-slate-900 mb-4">Platform Fees</h3>
-             <div className="bg-slate-50 rounded-xl p-4 flex items-center justify-between">
-                <div>
-                    <p className="text-xs text-slate-500 font-bold uppercase">Total Collected</p>
-                    <p className="text-xl font-bold text-slate-700">{revenueCurrency} {stats.totalFeesCollected.toLocaleString()}</p>
+        {/* Fees & Recent */}
+        <div className="flex flex-col gap-6">
+            {/* Fees Card */}
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden">
+                <div className="flex justify-between items-start mb-4">
+                    <div>
+                        <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Platform Fees</p>
+                        <h4 className="text-2xl font-bold text-slate-900">{revenueCurrency} {stats.totalFeesCollected.toLocaleString()}</h4>
+                    </div>
+                    <div className="bg-orange-50 p-2.5 rounded-xl text-orange-600">
+                        <PieChart size={20} />
+                    </div>
                 </div>
-                <div className="p-3 bg-white rounded-lg shadow-sm text-slate-400">
-                    <PieChart size={20} />
+                <div className="w-full bg-slate-100 rounded-full h-1.5 mb-2 overflow-hidden">
+                    <div className="bg-orange-500 h-full rounded-full w-[15%]"></div>
                 </div>
-             </div>
-             <p className="text-xs text-slate-400 mt-2">Fees are deducted automatically via the payment gateway.</p>
-          </div>
+                <p className="text-xs text-slate-400">5% Platform commission collected</p>
+            </div>
 
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-slate-900">Recent Events</h3>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto space-y-3 pr-1 max-h-[250px] xl:max-h-none">
-            {recentEvents.map((evt) => (
-                <div key={evt.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer border border-transparent hover:border-slate-100">
-                  <div className="min-w-0">
-                    <h4 className="font-semibold text-slate-800 text-sm truncate">{evt.name}</h4>
-                    <p className="text-xs text-slate-500 truncate">{new Date(evt.date).toLocaleDateString()}</p>
-                  </div>
-                  <div className="text-right pl-2">
-                     <span className="block text-xs font-bold text-emerald-600">{evt.currency} {evt.price}</span>
-                  </div>
+            {/* Recent Events List */}
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex-1 flex flex-col">
+                <h3 className="text-lg font-bold text-slate-900 mb-4">Recent Events</h3>
+                <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-2">
+                    {recentEvents.map((evt) => (
+                        <div key={evt.id} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-blue-50 transition-colors cursor-pointer group">
+                        <div className="min-w-0">
+                            <h4 className="font-bold text-slate-700 text-sm truncate group-hover:text-blue-700">{evt.name}</h4>
+                            <p className="text-xs text-slate-400 truncate font-medium">{new Date(evt.date).toLocaleDateString()}</p>
+                        </div>
+                        <div className="text-right pl-3">
+                            <span className="block text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">{evt.currency} {evt.price}</span>
+                        </div>
+                        </div>
+                    ))}
+                    {recentEvents.length === 0 && (
+                        <p className="text-slate-400 text-sm text-center py-4">No events created yet.</p>
+                    )}
                 </div>
-            ))}
-          </div>
+            </div>
         </div>
       </div>
     </div>
   );
 };
 
-const StatCard = ({ title, value, icon: Icon, trend, trendUp, isNeutral, description, highlight }: any) => (
-  <div className={`p-6 rounded-2xl shadow-sm border flex flex-col justify-between h-40 relative overflow-hidden group hover:shadow-md transition-all duration-300 ${highlight ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200/60'}`}>
-     <div className="flex justify-between items-start z-10">
-        <div>
-           <p className={`text-sm font-medium mb-1 ${highlight ? 'text-slate-400' : 'text-slate-500'}`}>{title}</p>
-           <h4 className={`text-2xl lg:text-3xl font-bold tracking-tight ${highlight ? 'text-white' : 'text-slate-800'}`}>{value}</h4>
-           {description && <p className={`text-xs mt-1 ${highlight ? 'text-slate-500' : 'text-slate-400'}`}>{description}</p>}
-        </div>
-        <div className={`p-2.5 rounded-xl transition-colors duration-300 shadow-sm ${highlight ? 'bg-slate-800 text-emerald-400' : 'bg-slate-50 text-slate-600 group-hover:bg-blue-600 group-hover:text-white'}`}>
-           <Icon size={20} />
-        </div>
-     </div>
-     
-     <div className="flex items-center gap-2 mt-4 z-10">
-        {isNeutral ? (
-             <div className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-slate-100 text-slate-500">
-                 <span>Stable</span>
-             </div>
-        ) : (
-            <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${trendUp ? (highlight ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600') : 'bg-rose-50 text-rose-600'}`}>
-                {trendUp ? <ArrowUpRight size={12} /> : <ArrowUpRight size={12} className="rotate-90" />} 
-                {trend}
+const StatCard = ({ title, value, icon: Icon, trend, trendUp, isNeutral, description, color = 'blue' }: any) => {
+    const colorStyles: Record<string, string> = {
+        blue: 'bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white',
+        indigo: 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white',
+        orange: 'bg-orange-50 text-orange-600 group-hover:bg-orange-600 group-hover:text-white',
+    };
+
+    return (
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-40 group hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+            <div className="flex justify-between items-start">
+                <div>
+                <p className="text-sm font-medium text-slate-500 mb-1">{title}</p>
+                <h4 className="text-3xl font-bold text-slate-800 tracking-tight">{value}</h4>
+                </div>
+                <div className={`p-3 rounded-xl transition-colors duration-300 ${colorStyles[color]}`}>
+                <Icon size={22} />
+                </div>
             </div>
-        )}
-        <span className={`text-xs ${highlight ? 'text-slate-500' : 'text-slate-400'}`}>vs last month</span>
-     </div>
-  </div>
-);
+            
+            <div className="flex items-center gap-2 mt-4">
+                {isNeutral ? (
+                    <div className="flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg bg-slate-100 text-slate-500">
+                        <span>Stable</span>
+                    </div>
+                ) : (
+                    <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg ${trendUp ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                        {trendUp ? <ArrowUpRight size={12} /> : <ArrowUpRight size={12} className="rotate-90" />} 
+                        {trend}
+                    </div>
+                )}
+                <span className="text-xs text-slate-400 font-medium">vs last month</span>
+            </div>
+        </div>
+    );
+};
