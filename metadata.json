@@ -1,0 +1,7 @@
+{
+  "name": "EventPass",
+  "description": "A complete Event Ticket Generation & Verification System with Admin Dashboard and QR Scanning.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
