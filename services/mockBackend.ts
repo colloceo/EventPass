@@ -1,13 +1,16 @@
-import { Event, Ticket, VerificationResult, Stats } from '../types';
+import { Event, Ticket, VerificationResult, Stats, SubscriptionPlan } from '../types';
 
 // Keys for LocalStorage
 const EVENTS_KEY = 'eventpass_events';
 const TICKETS_KEY = 'eventpass_tickets';
+const SUB_KEY = 'eventpass_subscription';
 
-// Helper to generate IDs
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
-// --- Initialization ---
+// --- Business Logic Settings ---
+const COMMISSION_RATE = 0.05; // 5%
+const FIXED_FEE = 30; // KSh 30 or equivalent units
+
 const initializeData = () => {
   if (!localStorage.getItem(EVENTS_KEY)) {
     const initialEvents: Event[] = [
@@ -19,15 +22,7 @@ const initializeData = () => {
         price: 299,
         currency: 'USD',
         description: 'The biggest tech event of the year.',
-      },
-      {
-        id: 'evt_2',
-        name: 'Summer Music Festival',
-        date: '2024-07-20',
-        location: 'Austin, TX',
-        price: 150,
-        currency: 'USD',
-        description: 'Live music, food, and fun.',
+        feeModel: 'pass_on'
       },
     ];
     localStorage.setItem(EVENTS_KEY, JSON.stringify(initialEvents));
@@ -68,6 +63,27 @@ export const generateTicket = async (
   const event = events.find((e) => e.id === eventId);
   if (!event) throw new Error('Event not found');
 
+  // Monetization Logic
+  const basePrice = event.price;
+  let platformFee = 0;
+  let pricePaid = 0;
+  let netRevenue = 0;
+
+  if (basePrice > 0) {
+      // Calculate Commission (5% + 30)
+      const calculatedFee = (basePrice * COMMISSION_RATE) + (event.currency === 'KES' ? 30 : 0.50);
+      platformFee = parseFloat(calculatedFee.toFixed(2));
+
+      if (event.feeModel === 'pass_on') {
+          pricePaid = basePrice + platformFee;
+          netRevenue = basePrice;
+      } else {
+          // Absorb
+          pricePaid = basePrice;
+          netRevenue = basePrice - platformFee;
+      }
+  }
+
   const tickets = await getTickets();
   const newTicket: Ticket = {
     id: generateId(),
@@ -77,13 +93,13 @@ export const generateTicket = async (
     customerEmail,
     status: 'unused',
     createdAt: new Date().toISOString(),
+    pricePaid,
+    platformFee,
+    netRevenue
   };
 
   tickets.push(newTicket);
   localStorage.setItem(TICKETS_KEY, JSON.stringify(tickets));
-  
-  // In a real app, this would trigger an email service
-  console.log(`[Email Service] Sending ticket ${newTicket.id} to ${customerEmail}`);
   
   return newTicket;
 };
@@ -102,7 +118,6 @@ export const verifyTicket = async (ticketId: string): Promise<VerificationResult
     return { valid: false, message: 'Ticket Already Used', ticket };
   }
 
-  // Mark as used
   ticket.status = 'used';
   ticket.usedAt = new Date().toISOString();
   tickets[ticketIndex] = ticket;
@@ -115,16 +130,56 @@ export const getStats = async (): Promise<Stats> => {
   const events = await getEvents();
   const tickets = await getTickets();
   
-  const revenue = tickets.reduce((acc, ticket) => {
-    const event = events.find(e => e.id === ticket.eventId);
-    // Note: This sums up raw numbers regardless of currency for the simple stats view
-    return acc + (event ? event.price : 0);
-  }, 0);
+  // Calculate Financials based on recorded ticket data
+  const grossSales = tickets.reduce((acc, t) => acc + (t.pricePaid || 0), 0);
+  const netRevenue = tickets.reduce((acc, t) => acc + (t.netRevenue || 0), 0);
+  const totalFeesCollected = tickets.reduce((acc, t) => acc + (t.platformFee || 0), 0);
 
   return {
     totalEvents: events.length,
     totalTickets: tickets.length,
     ticketsUsed: tickets.filter((t) => t.status === 'used').length,
-    revenue,
+    grossSales,
+    netRevenue,
+    totalFeesCollected
   };
+};
+
+export const getSubscriptionPlans = async (): Promise<SubscriptionPlan[]> => {
+    const currentPlanId = localStorage.getItem(SUB_KEY) || 'basic';
+    
+    return [
+        {
+            id: 'basic',
+            name: 'Basic Plan',
+            price: 2500,
+            currency: 'KES',
+            limit: '300 Tickets/mo',
+            features: ['Standard Dashboard', 'Email Support', 'Mobile Scanning'],
+            isCurrent: currentPlanId === 'basic'
+        },
+        {
+            id: 'standard',
+            name: 'Standard Plan',
+            price: 8000,
+            currency: 'KES',
+            limit: '2,000 Tickets/mo',
+            features: ['Advanced Analytics', 'Priority Support', 'Scanner Rental Option', 'Custom Branding'],
+            isCurrent: currentPlanId === 'standard'
+        },
+        {
+            id: 'premium',
+            name: 'Premium Plan',
+            price: 25000,
+            currency: 'KES',
+            limit: 'Unlimited',
+            features: ['Dedicated Account Manager', 'White-labeling', 'On-site Crew', 'API Access'],
+            isCurrent: currentPlanId === 'premium'
+        }
+    ];
+};
+
+export const upgradePlan = async (planId: string) => {
+    localStorage.setItem(SUB_KEY, planId);
+    return true;
 };

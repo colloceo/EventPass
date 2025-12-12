@@ -4,6 +4,7 @@ import { Dashboard } from './pages/Dashboard';
 import { CreateEvent } from './pages/CreateEvent';
 import { TicketGenerator } from './pages/TicketGenerator';
 import { Scanner } from './pages/Scanner';
+import { Billing } from './pages/Billing';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -18,6 +19,8 @@ export default function App() {
         return <TicketGenerator />;
       case 'scanner':
         return <Scanner />;
+      case 'billing':
+        return <Billing />;
       default:
         return <Dashboard />;
     }

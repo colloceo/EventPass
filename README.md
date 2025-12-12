@@ -2,39 +2,33 @@
 
 **Built by Collins Otieno**
 
-EventPass is a comprehensive web-based system designed for generating, managing, and verifying event tickets. It features a modern dashboard, custom currency support, professional ticket printing, and real-time verification.
+EventPass is a complete Event Ticket Generation, Verification, and Management System designed for the modern event industry. It features a robust monetization engine, real-time financial tracking, professional ticket generation, and a seamless scanning interface.
 
-## Features
+## Key Features
 
-### 1. Admin Dashboard
-- **Real-time Statistics**: Monitor total revenue, tickets sold, and active check-ins.
-- **Multi-Currency Support**: View revenue in the specific currency of your event (e.g., USD, KES, EUR).
-- **Visual Analytics**: Interactive bar charts displaying ticket usage status.
-- **Event Overview**: Quick access to recent events and their performance.
+### 1. Business & Monetization (New)
+- **Subscription Models**: Integrated billing system with Basic, Standard, and Premium tiers to scale with event needs.
+- **Smart Fee Calculator**:
+  - **Pass-on Fee**: Automatically calculates and adds platform fees (e.g., 5% + KSh 30) to the customer's ticket price.
+  - **Absorb Fee**: Allows organizers to absorb fees, deducting them from their net revenue.
+- **Financial Analytics**: Dashboard now distinguishes between **Gross Sales** (Total money collected) and **Net Earnings** (Organizer profit after fees).
 
-### 2. Event Management
-- Create distinct events with specific details:
-  - Event Name
-  - Date & Time
-  - Location/Venue
-  - **Custom Pricing & Currency**
-  - Description
+### 2. Professional Ticket Generation
+- **Bulk Creation**: Import CSV lists (Name, Email) to generate hundreds of tickets in seconds.
+- **Custom Design**: Toggle visibility for fields like Price, Location, Email, and Ticket ID.
+- **Realistic Preview**: High-fidelity ticket rendering with perforation effects, branded headers, and QR codes.
+- **Print & Download**: Optimized layouts for standard printing or individual PNG downloads.
 
-### 3. Ticket Generation
-- Issue tickets for specific events.
-- Capture customer details (Name, Email).
-- **QR Code Integration**: Automatically generates a unique QR code for every ticket.
-- **Print & Download**: 
-  - Generate high-quality PNG ticket images.
-  - Print optimized tickets directly from the browser.
+### 3. Verification System
+- **Live Scanner**: Browser-based QR scanner compatible with mobile cameras and webcams.
+- **Manual Entry**: Fallback support for typing Ticket IDs manually (supports USB scanner guns).
+- **Fraud Prevention**: Real-time validation checks for duplicate usage ("Double-entry") and invalid IDs.
+- **Status Feedback**: Clear visual cues (Green/Red) for Access Granted or Denied.
 
-### 4. Verification System
-- **Scanner Interface**: Built-in scanner to verify tickets.
-- **Validation Logic**: 
-  - Checks if the ticket exists.
-  - Verifies if the ticket belongs to the correct event.
-  - Prevents reuse of tickets (Double-entry protection).
-- Visual feedback for "Access Granted" or "Access Denied".
+### 4. Event Management
+- Create events with support for multiple currencies (KES, USD, EUR).
+- Real-time revenue estimation during event setup.
+- Track attendance and usage stats.
 
 ## Technology Stack
 
@@ -43,15 +37,18 @@ EventPass is a comprehensive web-based system designed for generating, managing,
 - **Icons**: Lucide React
 - **Charts**: Recharts
 - **QR Generation**: qrcode.react
-- **Backend Simulation**: LocalStorage (simulating a Node.js/PostgreSQL environment for browser demo purposes)
+- **Backend Simulation**: LocalStorage (Simulates a Node.js/PostgreSQL environment for persistent browser demos)
 
 ## Usage Guide
 
-1. **Dashboard**: View the overall system health.
-2. **Create Event**: Go to the "Create Event" tab to add a new event to the system. You can specify the currency code (e.g., USD, KES).
-3. **Issue Ticket**: Navigate to "Issue Ticket", select your created event, and generate a ticket for a user.
-4. **Print/Download**: Once generated, use the buttons to download a PNG or print the ticket immediately.
-5. **Verify**: Copy the generated **Ticket ID**, go to the "Scanner" tab, and enter/scan the ID to verify the ticket status.
+1. **Dashboard**: View your Net Earnings, Gross Sales, and Ticket Sales trends.
+2. **Create Event**: Set up an event and choose your **Fee Model** (Absorb vs Pass-on) to see projected earnings.
+3. **Billing**: Navigate to the Billing tab to upgrade your subscription plan based on your monthly ticket volume.
+4. **Issue Ticket**:
+   - Use **Single Mode** for one-off VIP tickets.
+   - Use **Bulk Import** to paste a CSV list of attendees.
+   - Customize the ticket look using the "Visible Fields" toggles.
+5. **Scanner**: Open the Scanner on a mobile device or laptop at the gate to verify attendees.
 
 ---
 

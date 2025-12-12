@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createEvent } from '../services/mockBackend';
-import { Calendar, MapPin, DollarSign, Type, AlignLeft, Image as ImageIcon, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Calendar, MapPin, DollarSign, Type, AlignLeft, Image as ImageIcon, CheckCircle2, ArrowRight, Calculator, Info } from 'lucide-react';
 
 export const CreateEvent: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -10,14 +10,18 @@ export const CreateEvent: React.FC = () => {
     price: '',
     currency: 'USD',
     description: '',
+    feeModel: 'pass_on' as 'pass_on' | 'absorb'
   });
   const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Constants based on Monetization Strategy
+  const FEE_PERCENT = 0.05; // 5%
+  const FEE_FIXED = formData.currency === 'KES' ? 30 : 0.5; 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate network delay for better UX feel
     await new Promise(resolve => setTimeout(resolve, 600));
     
     await createEvent({
@@ -27,10 +31,11 @@ export const CreateEvent: React.FC = () => {
       price: Number(formData.price),
       currency: formData.currency,
       description: formData.description,
+      feeModel: formData.feeModel
     });
     
     setSuccess('Event created successfully!');
-    setFormData({ name: '', date: '', location: '', price: '', currency: 'USD', description: '' });
+    setFormData({ name: '', date: '', location: '', price: '', currency: 'USD', description: '', feeModel: 'pass_on' });
     setIsSubmitting(false);
     setTimeout(() => setSuccess(''), 4000);
   };
@@ -39,23 +44,28 @@ export const CreateEvent: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Helper to format date for preview
   const previewDate = formData.date ? new Date(formData.date) : new Date();
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  // Calculation Logic
+  const priceNum = Number(formData.price) || 0;
+  const platformFee = (priceNum * FEE_PERCENT) + FEE_FIXED;
+  const finalCustomerPrice = formData.feeModel === 'pass_on' ? priceNum + platformFee : priceNum;
+  const organizerEarnings = formData.feeModel === 'pass_on' ? priceNum : priceNum - platformFee;
 
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Create New Event</h2>
-           <p className="text-slate-500 mt-1">Set up the details for your next big event.</p>
+           <p className="text-slate-500 mt-1">Set up details, pricing, and monetization.</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         
         {/* Left Column: Form */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
             <form onSubmit={handleSubmit} className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200/60 space-y-6">
                 
                 {/* Event Name */}
@@ -98,7 +108,7 @@ export const CreateEvent: React.FC = () => {
 
                     {/* Price & Currency */}
                     <div className="space-y-1.5">
-                        <label className="block text-sm font-semibold text-slate-700">Price</label>
+                        <label className="block text-sm font-semibold text-slate-700">Ticket Price</label>
                         <div className="flex gap-2">
                              <div className="relative w-24">
                                 <select
@@ -108,9 +118,8 @@ export const CreateEvent: React.FC = () => {
                                     className="block w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-slate-800 font-medium appearance-none"
                                 >
                                     <option value="USD">USD</option>
-                                    <option value="EUR">EUR</option>
-                                    <option value="GBP">GBP</option>
                                     <option value="KES">KES</option>
+                                    <option value="EUR">EUR</option>
                                 </select>
                              </div>
                             <div className="relative flex-1 group">
@@ -131,6 +140,54 @@ export const CreateEvent: React.FC = () => {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                {/* Fee Model Selection */}
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                     <label className="block text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                        <Calculator size={16} className="text-blue-600" />
+                        Ticket Fees & Revenue
+                     </label>
+                     
+                     <div className="flex gap-4 mb-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                                type="radio" 
+                                name="feeModel" 
+                                value="pass_on" 
+                                checked={formData.feeModel === 'pass_on'}
+                                onChange={handleChange}
+                                className="w-4 h-4 text-blue-600"
+                            />
+                            <span className="text-sm font-medium text-slate-700">Pass fees to customer</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                                type="radio" 
+                                name="feeModel" 
+                                value="absorb" 
+                                checked={formData.feeModel === 'absorb'}
+                                onChange={handleChange}
+                                className="w-4 h-4 text-blue-600"
+                            />
+                            <span className="text-sm font-medium text-slate-700">Absorb fees</span>
+                        </label>
+                     </div>
+
+                     <div className="bg-white rounded-lg border border-slate-200 p-3 text-sm space-y-2">
+                         <div className="flex justify-between text-slate-500">
+                             <span>Platform Fee (5% + {FEE_FIXED})</span>
+                             <span>{formData.currency} {platformFee.toFixed(2)}</span>
+                         </div>
+                         <div className="flex justify-between font-bold border-t border-slate-100 pt-2">
+                             <span className="text-slate-700">Customer Pays</span>
+                             <span className="text-slate-900">{formData.currency} {finalCustomerPrice.toFixed(2)}</span>
+                         </div>
+                         <div className="flex justify-between font-bold text-emerald-600">
+                             <span>You Earn</span>
+                             <span>{formData.currency} {organizerEarnings.toFixed(2)}</span>
+                         </div>
+                     </div>
                 </div>
 
                 {/* Location */}
@@ -232,7 +289,7 @@ export const CreateEvent: React.FC = () => {
                             </div>
                             <div className="flex items-center gap-1 text-xs text-slate-500 mt-1 truncate">
                                 <DollarSign size={12} />
-                                <span>{formData.currency} {formData.price || '0.00'}</span>
+                                <span>{formData.currency} {finalCustomerPrice.toFixed(2)}</span>
                             </div>
                         </div>
                     </div>
@@ -249,12 +306,12 @@ export const CreateEvent: React.FC = () => {
                 <div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
                      <div className="flex items-start gap-3">
                         <div className="p-2 bg-blue-100 text-blue-600 rounded-lg shrink-0">
-                            <ImageIcon size={18} />
+                            <Info size={18} />
                         </div>
                         <div>
-                            <h4 className="text-sm font-bold text-slate-800">Pro Tip</h4>
+                            <h4 className="text-sm font-bold text-slate-800">Fee Strategy</h4>
                             <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                                Precise location names help attendees find venues on maps easier. Ensure the price code matches your local currency.
+                                Passing fees to customers keeps your earnings high. Absorbing fees can increase ticket sales for competitive events.
                             </p>
                         </div>
                      </div>

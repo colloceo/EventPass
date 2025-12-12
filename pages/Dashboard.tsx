@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getStats, getEvents } from '../services/mockBackend';
 import { Stats, Event } from '../types';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { DollarSign, Users, Ticket, Activity, Calendar, ArrowUpRight, ArrowRight } from 'lucide-react';
+import { DollarSign, Users, Ticket, Activity, Calendar, ArrowUpRight, ArrowRight, Wallet, PieChart } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -18,12 +18,8 @@ export const Dashboard: React.FC = () => {
       setRecentEvents(allEvents.slice(0, 5));
 
       if (allEvents.length > 0) {
-        const currencies = new Set(allEvents.map(e => e.currency));
-        if (currencies.size === 1) {
-          setRevenueCurrency(allEvents[0].currency);
-        } else {
-          setRevenueCurrency('Mixed');
-        }
+        // Simple logic to show the currency of the most recent event or default
+        setRevenueCurrency(allEvents[0].currency);
       }
     };
     fetchData();
@@ -48,23 +44,39 @@ export const Dashboard: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
            <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Overview</h2>
-           <p className="text-slate-500 mt-1">Welcome back! Here's what's happening with your events today.</p>
+           <p className="text-slate-500 mt-1">Track your event sales and earnings.</p>
         </div>
-        <button className="bg-white hover:bg-gray-50 border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
-            <Calendar size={16} className="text-slate-500" /> 
-            <span>Last 7 Days</span>
-        </button>
+        <div className="flex gap-2">
+            <button className="bg-white hover:bg-gray-50 border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
+                <Calendar size={16} className="text-slate-500" /> 
+                <span>Last 30 Days</span>
+            </button>
+        </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        
+        {/* Net Earnings (Organizer Profit) */}
         <StatCard 
-          title="Total Revenue" 
-          value={revenueCurrency === 'Mixed' ? `~ ${stats.revenue.toLocaleString()}` : `${revenueCurrency} ${stats.revenue.toLocaleString()}`} 
+          title="Net Earnings" 
+          value={`${revenueCurrency} ${stats.netRevenue.toLocaleString()}`} 
+          icon={Wallet} 
+          trend="15.2%"
+          trendUp={true}
+          description="After fees"
+          highlight
+        />
+
+        {/* Gross Sales */}
+        <StatCard 
+          title="Gross Sales" 
+          value={`${revenueCurrency} ${stats.grossSales.toLocaleString()}`} 
           icon={DollarSign} 
           trend="12.5%"
           trendUp={true}
         />
+
         <StatCard 
           title="Tickets Sold" 
           value={stats.totalTickets.toString()} 
@@ -72,19 +84,13 @@ export const Dashboard: React.FC = () => {
           trend="8.2%"
           trendUp={true}
         />
+        
         <StatCard 
           title="Check-ins" 
           value={stats.ticketsUsed.toString()} 
           icon={Users} 
           trend="2.1%"
           trendUp={false}
-        />
-         <StatCard 
-          title="Active Events" 
-          value={stats.totalEvents.toString()} 
-          icon={Activity} 
-          trend="Stable"
-          trendUp={true}
           isNeutral
         />
       </div>
@@ -94,12 +100,12 @@ export const Dashboard: React.FC = () => {
         <div className="xl:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60">
           <div className="flex items-center justify-between mb-8">
              <div>
-                <h3 className="text-lg font-bold text-slate-900">Ticket Sales Trend</h3>
-                <p className="text-sm text-slate-400">Daily sales performance over the last week</p>
+                <h3 className="text-lg font-bold text-slate-900">Revenue Trend</h3>
+                <p className="text-sm text-slate-400">Daily financial performance</p>
              </div>
              <div className="flex gap-2 items-center">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Sales Volume</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <span className="text-xs text-slate-500 font-medium uppercase tracking-wide">Net Earnings</span>
              </div>
           </div>
           <div className="h-[300px] w-full">
@@ -107,8 +113,8 @@ export const Dashboard: React.FC = () => {
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -131,7 +137,7 @@ export const Dashboard: React.FC = () => {
                 <Area 
                     type="monotone" 
                     dataKey="sales" 
-                    stroke="#3b82f6" 
+                    stroke="#10b981" 
                     strokeWidth={3} 
                     fillOpacity={1} 
                     fill="url(#colorSales)" 
@@ -141,49 +147,38 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Recent Events List */}
+        {/* Fees Info / Recent */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60 flex flex-col">
-          <div className="flex items-center justify-between mb-6">
+          <div className="mb-6 pb-6 border-b border-slate-100">
+             <h3 className="text-lg font-bold text-slate-900 mb-4">Platform Fees</h3>
+             <div className="bg-slate-50 rounded-xl p-4 flex items-center justify-between">
+                <div>
+                    <p className="text-xs text-slate-500 font-bold uppercase">Total Collected</p>
+                    <p className="text-xl font-bold text-slate-700">{revenueCurrency} {stats.totalFeesCollected.toLocaleString()}</p>
+                </div>
+                <div className="p-3 bg-white rounded-lg shadow-sm text-slate-400">
+                    <PieChart size={20} />
+                </div>
+             </div>
+             <p className="text-xs text-slate-400 mt-2">Fees are deducted automatically via the payment gateway.</p>
+          </div>
+
+          <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-slate-900">Recent Events</h3>
-            <button className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1 transition-colors">
-                View All <ArrowRight size={14} />
-            </button>
           </div>
           
-          <div className="flex-1 overflow-y-auto space-y-4 pr-1 max-h-[300px] xl:max-h-none">
-            {recentEvents.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-slate-400 py-10">
-                 <Calendar size={32} className="mb-2 opacity-30" />
-                 <p className="text-sm">No active events found</p>
-              </div>
-            ) : (
-              recentEvents.map((evt) => (
-                <div key={evt.id} className="group flex items-center justify-between p-3.5 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all cursor-pointer">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 text-slate-600 flex flex-col items-center justify-center flex-shrink-0">
-                        <span className="text-[10px] font-semibold uppercase text-slate-400">{new Date(evt.date).toLocaleString('default', { month: 'short' })}</span>
-                        <span className="text-lg font-bold text-slate-800 leading-none">{new Date(evt.date).getDate()}</span>
-                    </div>
-                    <div className="min-w-0">
-                        <h4 className="font-semibold text-slate-800 text-sm truncate group-hover:text-blue-700 transition-colors">{evt.name}</h4>
-                        <p className="text-xs text-slate-500 truncate">{evt.location}</p>
-                    </div>
+          <div className="flex-1 overflow-y-auto space-y-3 pr-1 max-h-[250px] xl:max-h-none">
+            {recentEvents.map((evt) => (
+                <div key={evt.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer border border-transparent hover:border-slate-100">
+                  <div className="min-w-0">
+                    <h4 className="font-semibold text-slate-800 text-sm truncate">{evt.name}</h4>
+                    <p className="text-xs text-slate-500 truncate">{new Date(evt.date).toLocaleDateString()}</p>
                   </div>
-                  <div className="text-right pl-2 flex-shrink-0">
-                     <span className="block text-sm font-bold text-slate-900">{evt.currency} {evt.price}</span>
-                     <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 mt-1">
-                        Active
-                     </span>
+                  <div className="text-right pl-2">
+                     <span className="block text-xs font-bold text-emerald-600">{evt.currency} {evt.price}</span>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
-          
-          <div className="mt-6 pt-4 border-t border-slate-100">
-             <button className="w-full py-2.5 rounded-lg border border-dashed border-slate-300 text-slate-500 hover:text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-all text-sm font-medium flex items-center justify-center gap-2">
-                <Activity size={16} /> View Performance Report
-             </button>
+            ))}
           </div>
         </div>
       </div>
@@ -191,14 +186,15 @@ export const Dashboard: React.FC = () => {
   );
 };
 
-const StatCard = ({ title, value, icon: Icon, trend, trendUp, isNeutral }: any) => (
-  <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60 flex flex-col justify-between h-36 relative overflow-hidden group hover:shadow-md transition-all duration-300">
+const StatCard = ({ title, value, icon: Icon, trend, trendUp, isNeutral, description, highlight }: any) => (
+  <div className={`p-6 rounded-2xl shadow-sm border flex flex-col justify-between h-40 relative overflow-hidden group hover:shadow-md transition-all duration-300 ${highlight ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200/60'}`}>
      <div className="flex justify-between items-start z-10">
         <div>
-           <p className="text-sm text-slate-500 font-medium mb-1">{title}</p>
-           <h4 className="text-2xl lg:text-3xl font-bold text-slate-800 tracking-tight">{value}</h4>
+           <p className={`text-sm font-medium mb-1 ${highlight ? 'text-slate-400' : 'text-slate-500'}`}>{title}</p>
+           <h4 className={`text-2xl lg:text-3xl font-bold tracking-tight ${highlight ? 'text-white' : 'text-slate-800'}`}>{value}</h4>
+           {description && <p className={`text-xs mt-1 ${highlight ? 'text-slate-500' : 'text-slate-400'}`}>{description}</p>}
         </div>
-        <div className={`p-2.5 rounded-xl bg-slate-50 text-slate-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300 shadow-sm`}>
+        <div className={`p-2.5 rounded-xl transition-colors duration-300 shadow-sm ${highlight ? 'bg-slate-800 text-emerald-400' : 'bg-slate-50 text-slate-600 group-hover:bg-blue-600 group-hover:text-white'}`}>
            <Icon size={20} />
         </div>
      </div>
@@ -209,15 +205,12 @@ const StatCard = ({ title, value, icon: Icon, trend, trendUp, isNeutral }: any) 
                  <span>Stable</span>
              </div>
         ) : (
-            <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${trendUp ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+            <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${trendUp ? (highlight ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600') : 'bg-rose-50 text-rose-600'}`}>
                 {trendUp ? <ArrowUpRight size={12} /> : <ArrowUpRight size={12} className="rotate-90" />} 
                 {trend}
             </div>
         )}
-        <span className="text-xs text-slate-400">vs last month</span>
+        <span className={`text-xs ${highlight ? 'text-slate-500' : 'text-slate-400'}`}>vs last month</span>
      </div>
-
-     {/* Decorative gradient blob */}
-     <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-gradient-to-br from-slate-50 to-slate-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-0 pointer-events-none" />
   </div>
 );

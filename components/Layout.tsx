@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, CalendarPlus, Ticket, ScanLine } from 'lucide-react';
+import { LayoutDashboard, CalendarPlus, Ticket, ScanLine, CreditCard } from 'lucide-react';
 import { Onboarding } from './Onboarding';
 
 interface LayoutProps {
@@ -14,6 +14,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigat
     { id: 'create-event', label: 'Create Event', icon: CalendarPlus },
     { id: 'generate-ticket', label: 'Issue Ticket', icon: Ticket },
     { id: 'scanner', label: 'Scanner', icon: ScanLine },
+    { id: 'billing', label: 'Billing & Plans', icon: CreditCard },
   ];
 
   return (
@@ -47,7 +48,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigat
           ))}
         </nav>
         <div className="p-4 border-t border-slate-700 text-xs text-slate-500 text-center">
-          v1.1.0 Production Build
+          v1.2.0 Business Edition
         </div>
       </aside>
 
